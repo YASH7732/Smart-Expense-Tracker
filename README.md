@@ -49,12 +49,16 @@ http://localhost:8080
 ## Current Status
 - [x] Spring Boot server setup complete
 - [x] Project structure created
-- [ ] MySQL database connection
+- [x] MySQL database connection
+- [x] Expense CRUD operations — GET, POST, DELETE
+- [x] REST APIs tested with Postman
+- [x] Frontend HTML CSS JS connected
+- [x] Total expenses calculation added
+- [x] Full stack application working end to end
 - [ ] User authentication
-- [ ] Expense CRUD operations
-- [ ] Frontend dashboard
-- [ ] Chart.js integration
-- [ ] Deployment
+- [ ] Chart.js analytics dashboard
+- [ ] Budget alert system
+- [ ] Deployment on Railway
 
 ## Developer
 Yash — Backend Development, Database Design, Frontend Integration
