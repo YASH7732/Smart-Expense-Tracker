@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,5 +33,14 @@ public class ExpenseController {
     public String deleteExpense(@PathVariable Long id) {
         expenseRepository.deleteById(id);
         return "Expense deleted successfully";
+    }
+
+    @PutMapping("/{id}")
+    public Expense updateExpense(@PathVariable Long id, @RequestBody Expense updatedExpense) {
+        Expense existing = expenseRepository.findById(id).orElseThrow();
+        existing.setTitle(updatedExpense.getTitle());
+        existing.setAmount(updatedExpense.getAmount());
+        existing.setCategory(updatedExpense.getCategory());
+        return expenseRepository.save(existing);
     }
 }
