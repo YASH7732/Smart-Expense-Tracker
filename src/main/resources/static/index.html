@@ -1,269 +1,680 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Expense Tracker</title>
+    <link rel="stylesheet" href="Style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .form-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .delete-btn {
-            background-color: #f44336;
-            padding: 5px 10px;
-            width: auto;
-        }
-        .edit-btn {
-            background-color: #2196F3;
-            padding: 5px 10px;
-            width: auto;
-        }
-        .edit-mode {
-            background-color: #fff3cd;
-            border: 2px solid #FF9800;
-        }
-        #cancelEdit {
-            background-color: #999;
-            display: none;
-        }
-    </style>
+
+    
 </head>
+
 <body>
 
-    <h1>💰 Smart Expense Tracker</h1>
+    <!-- AUTH PAGE -->
+    <div id="authPage">
 
-    <div class="form-container" id="formContainer">
-        <h2 id="formTitle">Add New Expense</h2>
-        <input type="text" id="title" placeholder="Expense Title" />
-        <select id="category">
-            <option value="">Select Category</option>
-            <option value="Food">Food</option>
-            <option value="Travel">Travel</option>
-            <option value="Education">Education</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Bills">Bills</option>
-            <option value="Other">Other</option>
-        </select>
-        <input type="number" id="amount" placeholder="Amount (₹)" />
-        <button id="submitBtn" onclick="addExpense()">Add Expense</button>
-        <button id="cancelEdit" onclick="cancelEdit()">Cancel Edit</button>
+        <h1>💰 Smart Expense Tracker</h1>
+
+        <div class="form-container">
+
+            <button
+                class="tab-btn login-tab"
+                onclick="showTab('login')">
+
+                Login
+
+            </button>
+
+            <button
+                class="tab-btn register-tab"
+                onclick="showTab('register')">
+
+                Register
+
+            </button>
+
+            <!-- LOGIN -->
+            <div id="loginForm">
+
+                <h2>Login</h2>
+
+                <input
+                    type="text"
+                    id="loginUsername"
+                    placeholder="Username"
+                />
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Password"
+                />
+
+                <button
+                    class="login-tab"
+                    onclick="login()">
+
+                    Login
+
+                </button>
+
+            </div>
+
+            <!-- REGISTER -->
+            <div id="registerForm" style="display:none;">
+
+                <h2>Register</h2>
+
+                <input
+                    type="text"
+                    id="regUsername"
+                    placeholder="Username"
+                />
+
+                <input
+                    type="password"
+                    id="regPassword"
+                    placeholder="Password"
+                />
+
+                <button
+                    class="register-tab"
+                    onclick="register()">
+
+                    Register
+
+                </button>
+
+            </div>
+
+            <p id="errorMsg"></p>
+
+        </div>
+
     </div>
 
-    <div style="background:white; padding:20px; border-radius:8px; 
-        margin-bottom:20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        max-width:400px; margin:0 auto 20px auto;">
-        <h3 style="text-align:center;">Spending by Category</h3>
-        <canvas id="categoryChart"></canvas>
-    </div>
+    <!-- APP PAGE -->
+    <div id="appPage">
 
-    <h2>All Expenses</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="expenseTable">
-        </tbody>
-    </table>
+        <h1>💰 Smart Expense Tracker</h1>
 
-    <div style="background:white; padding:15px; margin-top:20px; 
-        border-radius:8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-        text-align:right; font-size:18px;">
-        <strong>Total Expenses: <span id="totalAmount">₹0</span></strong>
+        <p id="welcomeMsg"></p>
+
+        <button id="logoutBtn" onclick="logout()">
+            Logout
+        </button>
+
+        <!-- EXPENSE FORM -->
+        <div
+            class="form-container"
+            id="expenseFormContainer">
+
+            <h2 id="formTitle">Add Expense</h2>
+
+            <input
+                type="text"
+                id="title"
+                placeholder="Expense Title"
+            />
+
+            <select id="category">
+
+                <option value="">Select Category</option>
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Education">Education</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Bills">Bills</option>
+                <option value="Other">Other</option>
+
+            </select>
+
+            <input
+                type="number"
+                id="amount"
+                placeholder="Amount"
+            />
+
+            <button
+                id="submitBtn"
+                onclick="addExpense()">
+
+                Add Expense
+
+            </button>
+
+            <button
+                id="cancelEdit"
+                onclick="cancelEdit()">
+
+                Cancel Edit
+
+            </button>
+
+        </div>
+
+        <!-- CHART -->
+        <div class="chart-container">
+
+            <h3 style="text-align:center;">
+                Spending by Category
+            </h3>
+
+            <canvas id="categoryChart"></canvas>
+
+        </div>
+
+        <!-- TABLE -->
+        <h2>All Expenses</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="expenseTable"></tbody>
+
+        </table>
+
+        <!-- TOTAL -->
+        <div id="totalBox">
+
+            <strong>
+                Total Expenses:
+                <span id="totalAmount">Rs 0</span>
+            </strong>
+
+        </div>
+
     </div>
 
     <script>
-    let editingId = null;
 
-    window.onload = function() {
-        loadExpenses();
-    }
+        let editingId = null;
 
-    function loadExpenses() {
-        fetch('/expenses')
+        // CHECK SESSION
+        window.onload = function () {
+
+            fetch('/me', {
+                credentials: 'include'
+            })
+
             .then(response => response.json())
+
             .then(data => {
-                const table = document.getElementById('expenseTable');
-                table.innerHTML = '';
-                showTotal(data);
-                showChart(data);
-                data.forEach(expense => {
-                    table.innerHTML += `
-                        <tr>
-                            <td>${expense.id}</td>
-                            <td>${expense.title}</td>
-                            <td>${expense.category}</td>
-                            <td>₹${expense.amount}</td>
-                            <td>
-                                <button class="delete-btn" onclick="deleteExpense(${expense.id})">Delete</button>
-                                <button class="edit-btn" onclick="editExpense(${expense.id}, '${expense.title}', ${expense.amount}, '${expense.category}')">Edit</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            });
-    }
 
-    function addExpense() {
-        const title = document.getElementById('title').value;
-        const category = document.getElementById('category').value;
-        const amount = document.getElementById('amount').value;
+                if (data.loggedIn) {
 
-        if(editingId !== null) {
-            fetch(`/expenses/${editingId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({title, category, amount})
-            })
-            .then(() => {
-                cancelEdit();
-                loadExpenses();
+                    showApp(data.username);
+
+                }
+
             });
-        } else {
-            fetch('/expenses', {
+
+        };
+
+        // SWITCH TABS
+        function showTab(tab) {
+
+            document.getElementById('loginForm').style.display =
+                tab === 'login' ? 'block' : 'none';
+
+            document.getElementById('registerForm').style.display =
+                tab === 'register' ? 'block' : 'none';
+
+            document.getElementById('errorMsg').innerText = '';
+
+        }
+
+        // REGISTER
+        function register() {
+
+            const username =
+                document.getElementById('regUsername').value;
+
+            const password =
+                document.getElementById('regPassword').value;
+
+            fetch('/register', {
+
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({title, category, amount})
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                credentials: 'include',
+
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+
             })
-            .then(response => response.json())
-            .then(() => {
-                loadExpenses();
-                document.getElementById('title').value = '';
-                document.getElementById('amount').value = '';
-                document.getElementById('category').value = '';
+
+            .then(response => response.text())
+
+            .then(result => {
+
+                if (result === 'REGISTERED') {
+
+                    document.getElementById('errorMsg').style.color =
+                        'green';
+
+                    document.getElementById('errorMsg').innerText =
+                        'Registration successful. Please login.';
+
+                    showTab('login');
+
+                }
+
+                else {
+
+                    document.getElementById('errorMsg').style.color =
+                        'red';
+
+                    document.getElementById('errorMsg').innerText =
+                        'Username already exists.';
+
+                }
+
             });
-        }
-    }
 
-    function editExpense(id, title, amount, category) {
-        editingId = id;
-        document.getElementById('title').value = title;
-        document.getElementById('amount').value = amount;
-        document.getElementById('category').value = category;
-        document.getElementById('formTitle').innerText = 'Edit Expense';
-        document.getElementById('submitBtn').innerText = 'Update Expense';
-        document.getElementById('submitBtn').style.backgroundColor = '#FF9800';
-        document.getElementById('cancelEdit').style.display = 'block';
-        document.getElementById('formContainer').classList.add('edit-mode');
-        window.scrollTo(0, 0);
-    }
-
-    function cancelEdit() {
-        editingId = null;
-        document.getElementById('title').value = '';
-        document.getElementById('amount').value = '';
-        document.getElementById('category').value = '';
-        document.getElementById('formTitle').innerText = 'Add New Expense';
-        document.getElementById('submitBtn').innerText = 'Add Expense';
-        document.getElementById('submitBtn').style.backgroundColor = '#4CAF50';
-        document.getElementById('cancelEdit').style.display = 'none';
-        document.getElementById('formContainer').classList.remove('edit-mode');
-    }
-
-    function deleteExpense(id) {
-        fetch(`/expenses/${id}`, {
-            method: 'DELETE'
-        })
-        .then(() => loadExpenses());
-    }
-
-    function showChart(data) {
-        const categories = {};
-        data.forEach(expense => {
-            if(categories[expense.category]){
-                categories[expense.category] += expense.amount;
-            } else {
-                categories[expense.category] = expense.amount;
-            }
-        });
-
-        const labels = Object.keys(categories);
-        const values = Object.values(categories);
-
-        const ctx = document.getElementById('categoryChart').getContext('2d');
-
-        if(window.myChart){
-            window.myChart.destroy();
         }
 
-        window.myChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: [
-                        '#4CAF50','#2196F3','#FF9800',
-                        '#E91E63','#9C27B0','#00BCD4'
-                    ]
-                }]
-            }
-        });
-    }
+        // LOGIN
+        function login() {
 
-    function showTotal(data) {
-        let total = 0;
-        data.forEach(expense => {
-            total += Number(expense.amount);
-        });
-        document.getElementById('totalAmount').innerText = '₹' + total;
-    }
+            const username =
+                document.getElementById('loginUsername').value;
+
+            const password =
+                document.getElementById('loginPassword').value;
+
+            fetch('/login', {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                credentials: 'include',
+
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+
+            })
+
+            .then(response => response.text())
+
+            .then(result => {
+
+                if (result === 'OK') {
+
+                    showApp(username);
+
+                }
+
+                else {
+
+                    document.getElementById('errorMsg').innerText =
+                        'Invalid username or password';
+
+                }
+
+            });
+
+        }
+
+        // SHOW APP
+        function showApp(username) {
+
+            document.getElementById('authPage').style.display =
+                'none';
+
+            document.getElementById('appPage').style.display =
+                'block';
+
+            document.getElementById('welcomeMsg').innerText =
+                'Welcome, ' + username + '!';
+
+            loadExpenses();
+
+        }
+
+        // LOGOUT
+        function logout() {
+
+            fetch('/logout', {
+
+                method: 'POST',
+                credentials: 'include'
+
+            })
+
+            .then(() => {
+
+                location.reload();
+
+            });
+
+        }
+
+        // LOAD EXPENSES
+        function loadExpenses() {
+
+            fetch('/expenses', {
+                credentials: 'include'
+            })
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                const table =
+                    document.getElementById('expenseTable');
+
+                table.innerHTML = '';
+
+                showChart(data);
+
+                showTotal(data);
+
+                data.forEach(expense => {
+
+                    table.innerHTML += `
+
+                        <tr>
+
+                            <td>${expense.id}</td>
+
+                            <td>${expense.title}</td>
+
+                            <td>${expense.category}</td>
+
+                            <td>Rs ${expense.amount}</td>
+
+                            <td>
+
+                                <button
+                                    class="edit-btn"
+                                    onclick="editExpense(
+                                        ${expense.id},
+                                        '${expense.title}',
+                                        ${expense.amount},
+                                        '${expense.category}'
+                                    )">
+
+                                    Edit
+
+                                </button>
+
+                                <button
+                                    class="delete-btn"
+                                    onclick="deleteExpense(${expense.id})">
+
+                                    Delete
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                });
+
+            });
+
+        }
+
+        // ADD / UPDATE EXPENSE
+        function addExpense() {
+
+            const title =
+                document.getElementById('title').value;
+
+            const category =
+                document.getElementById('category').value;
+
+            const amount =
+                document.getElementById('amount').value;
+
+            const expenseData = {
+                title,
+                category,
+                amount
+            };
+
+            // UPDATE
+            if (editingId !== null) {
+
+                fetch(`/expenses/${editingId}`, {
+
+                    method: 'PUT',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    credentials: 'include',
+
+                    body: JSON.stringify(expenseData)
+
+                })
+
+                .then(() => {
+
+                    cancelEdit();
+
+                    loadExpenses();
+
+                });
+
+            }
+
+            // ADD
+            else {
+
+                fetch('/expenses', {
+
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+
+                    credentials: 'include',
+
+                    body: JSON.stringify(expenseData)
+
+                })
+
+                .then(() => {
+
+                    document.getElementById('title').value = '';
+                    document.getElementById('category').value = '';
+                    document.getElementById('amount').value = '';
+
+                    loadExpenses();
+
+                });
+
+            }
+
+        }
+
+        // EDIT
+        function editExpense(id, title, amount, category) {
+
+            editingId = id;
+
+            document.getElementById('title').value = title;
+            document.getElementById('amount').value = amount;
+            document.getElementById('category').value = category;
+
+            document.getElementById('formTitle').innerText =
+                'Edit Expense';
+
+            document.getElementById('submitBtn').innerText =
+                'Update Expense';
+
+            document.getElementById('submitBtn').style.backgroundColor =
+                '#FF9800';
+
+            document.getElementById('cancelEdit').style.display =
+                'block';
+
+            // PERFECT SCROLL
+            document.getElementById('expenseFormContainer')
+                .scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+        }
+
+        // CANCEL EDIT
+        function cancelEdit() {
+
+            editingId = null;
+
+            document.getElementById('title').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('amount').value = '';
+
+            document.getElementById('formTitle').innerText =
+                'Add Expense';
+
+            document.getElementById('submitBtn').innerText =
+                'Add Expense';
+
+            document.getElementById('submitBtn').style.backgroundColor =
+                '#4CAF50';
+
+            document.getElementById('cancelEdit').style.display =
+                'none';
+
+        }
+
+        // DELETE
+        function deleteExpense(id) {
+
+            fetch(`/expenses/${id}`, {
+
+                method: 'DELETE',
+                credentials: 'include'
+
+            })
+
+            .then(() => {
+
+                loadExpenses();
+
+            });
+
+        }
+
+        // CHART
+        function showChart(data) {
+
+            const categories = {};
+
+            data.forEach(expense => {
+
+                if (categories[expense.category]) {
+
+                    categories[expense.category] +=
+                        expense.amount;
+
+                }
+
+                else {
+
+                    categories[expense.category] =
+                        expense.amount;
+
+                }
+
+            });
+
+            const labels = Object.keys(categories);
+
+            const values = Object.values(categories);
+
+            const ctx =
+                document.getElementById('categoryChart')
+                .getContext('2d');
+
+            if (window.myChart) {
+
+                window.myChart.destroy();
+
+            }
+
+            window.myChart = new Chart(ctx, {
+
+                type: 'pie',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [{
+
+                        data: values,
+
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#2196F3',
+                            '#FF9800',
+                            '#E91E63',
+                            '#9C27B0',
+                            '#00BCD4'
+                        ]
+
+                    }]
+
+                }
+
+            });
+
+        }
+
+        // TOTAL
+        function showTotal(data) {
+
+            let total = 0;
+
+            data.forEach(expense => {
+
+                total += Number(expense.amount);
+
+            });
+
+            document.getElementById('totalAmount').innerText =
+                'Rs ' + total;
+
+        }
+
     </script>
 
 </body>
+
 </html>
