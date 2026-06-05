@@ -107,6 +107,33 @@
             Logout
         </button>
 
+        <!-- ADMIN PANEL -->
+        <div class="form-container admin-panel" id="adminPanel" style="display:none;">
+
+            <h2>Admin Panel</h2>
+
+            <p id="adminStats"></p>
+
+            <h3>All Users</h3>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="usersTable"></tbody>
+
+            </table>
+
+        </div>
+
         <!-- EXPENSE FORM -->
         <div
             class="form-container"
@@ -174,7 +201,7 @@
 
             <thead>
 
-                <tr>
+                <tr id="expenseTableHeader">
                     <th>ID</th>
                     <th>Title</th>
                     <th>Category</th>
@@ -203,6 +230,8 @@
     <script>
 
         let editingId = null;
+        let currentRole = 'USER';
+        let userMap = {};
 
         // CHECK SESSION
         window.onload = function () {
@@ -217,7 +246,7 @@
 
                 if (data.loggedIn) {
 
-                    showApp(data.username);
+                    showApp(data.username, data.role);
 
                 }
 
@@ -280,6 +309,16 @@
 
                 }
 
+                else if (result === 'USERNAME_RESERVED') {
+
+                    document.getElementById('errorMsg').style.color =
+                        'red';
+
+                    document.getElementById('errorMsg').innerText =
+                        'This username is reserved.';
+
+                }
+
                 else {
 
                     document.getElementById('errorMsg').style.color =
@@ -326,7 +365,15 @@
 
                 if (result === 'OK') {
 
-                    showApp(username);
+                    fetch('/me', {
+                        credentials: 'include'
+                    })
+
+                    .then(response => response.json())
+
+                    .then(data => {
+                        showApp(data.username, data.role);
+                    });
 
                 }
 
@@ -342,7 +389,9 @@
         }
 
         // SHOW APP
-        function showApp(username) {
+        function showApp(username, role) {
+
+            currentRole = role || 'USER';
 
             document.getElementById('authPage').style.display =
                 'none';
@@ -350,10 +399,95 @@
             document.getElementById('appPage').style.display =
                 'block';
 
-            document.getElementById('welcomeMsg').innerText =
-                'Welcome, ' + username + '!';
+            const roleLabel =
+                currentRole === 'ADMIN' ? ' (Admin)' : '';
 
-            loadExpenses();
+            document.getElementById('welcomeMsg').innerText =
+                'Welcome, ' + username + roleLabel + '!';
+
+            if (currentRole === 'ADMIN') {
+
+                document.getElementById('adminPanel').style.display =
+                    'block';
+
+                document.getElementById('expenseTableHeader').innerHTML = `
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                `;
+
+                loadUsers().then(() => loadExpenses());
+
+            }
+
+            else {
+
+                document.getElementById('adminPanel').style.display =
+                    'none';
+
+                document.getElementById('expenseTableHeader').innerHTML = `
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Action</th>
+                `;
+
+                loadExpenses();
+
+            }
+
+        }
+
+        // LOAD USERS (ADMIN)
+        function loadUsers() {
+
+            return fetch('/users', {
+                credentials: 'include'
+            })
+
+            .then(response => {
+
+                if (!response.ok) {
+                    return [];
+                }
+
+                return response.json();
+
+            })
+
+            .then(users => {
+
+                userMap = {};
+
+                users.forEach(user => {
+                    userMap[user.id] = user.username;
+                });
+
+                const table =
+                    document.getElementById('usersTable');
+
+                table.innerHTML = '';
+
+                users.forEach(user => {
+
+                    table.innerHTML += `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.username}</td>
+                            <td>${user.role}</td>
+                        </tr>
+                    `;
+
+                });
+
+                document.getElementById('adminStats').innerText =
+                    'Total users: ' + users.length;
+
+            });
 
         }
 
@@ -397,11 +531,23 @@
 
                 data.forEach(expense => {
 
+                    const safeTitle =
+                        expense.title.replace(/'/g, "\\'");
+
+                    const safeCategory =
+                        expense.category.replace(/'/g, "\\'");
+
+                    const userCell =
+                        currentRole === 'ADMIN'
+                            ? `<td>${userMap[expense.userId] || 'User ' + expense.userId}</td>`
+                            : '';
+
                     table.innerHTML += `
 
                         <tr>
 
                             <td>${expense.id}</td>
+                            ${userCell}
 
                             <td>${expense.title}</td>
 
@@ -415,9 +561,9 @@
                                     class="edit-btn"
                                     onclick="editExpense(
                                         ${expense.id},
-                                        '${expense.title}',
+                                        '${safeTitle}',
                                         ${expense.amount},
-                                        '${expense.category}'
+                                        '${safeCategory}'
                                     )">
 
                                     Edit
