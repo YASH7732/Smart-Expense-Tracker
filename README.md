@@ -1,26 +1,31 @@
 # Smart Expense Tracker 💰
 
+🌐 **Live Demo: https://smart-expense-tracker-czrt.onrender.com**
+
 A full stack web application to track daily expenses, manage budgets and visualize spending patterns.
 
 ## What This Project Does
 - User registration and login system
 - Add, edit and delete daily expenses
 - Categorize expenses — food, travel, shopping, bills etc
-- Set monthly budget limits
-- Get alerts when budget exceeds limit
-- Visual charts showing spending patterns by category
+- Real-time expense table with instant updates
+- Visual pie chart showing spending by category
+- Total expenses calculation
 
 ## How It Works
-User opens the app → registers or logs in → adds daily expenses with category and amount → app stores data in MySQL database → dashboard shows charts of spending → app alerts user if monthly budget is exceeded
+User registers or logs in → adds daily expenses with title, category and amount → app stores data in cloud MySQL database → dashboard shows pie chart of spending by category → total expenses updates automatically
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Backend | Java Spring Boot |
-| Database | MySQL |
+| Database | MySQL (Cloud — FreeSQLDatabase) |
 | Frontend | HTML, CSS, JavaScript |
 | Charts | Chart.js |
+| Authentication | Spring Security |
+| Deployment | Render |
+| Monitoring | UptimeRobot |
 | Version Control | Git and GitHub |
 
 ## API Endpoints
@@ -33,34 +38,35 @@ User opens the app → registers or logs in → adds daily expenses with categor
 | POST | /expenses | Add new expense |
 | PUT | /expenses/{id} | Update expense |
 | DELETE | /expenses/{id} | Delete expense |
-| GET | /dashboard | Get spending summary |
 
-## How To Run This Project
+## How To Run Locally
 
 Step 1 — Clone the repository
 git clone https://github.com/YASH7732/Smart-Expense-Tracker.git
+
 Step 2 — Open in VS Code
 
 Step 3 — Run the application
 ./mvnw spring-boot:run
-Step 4 — Open browser and go to
-http://localhost:8080
+
+Step 4 — Open browser
+http://localhost:8081
 
 ## Current Status
-- [x] Spring Boot server setup complete
-- [x] Project structure created
-- [x] MySQL database connection
-- [x] Expense CRUD operations — GET, POST, DELETE
-- [x] REST APIs tested with Postman
-- [x] Frontend HTML CSS JS connected
-- [x] Total expenses calculation added
-- [x] Full stack application working end to end
-- [ ] User authentication
-- [ ] Chart.js analytics dashboard
-- [ ] Budget alert system
-- [ ] Deployment on Railway
+- [x] Spring Boot server setup
+- [x] MySQL database connected
+- [x] REST APIs — GET, POST, PUT, DELETE
+- [x] User registration and login
+- [x] Expense CRUD operations
+- [x] Frontend HTML CSS JS
+- [x] Chart.js analytics dashboard
+- [x] Total expenses calculation
+- [x] Deployed on Render
+- [x] Cloud MySQL database
+- [x] UptimeRobot monitoring — always awake
 
 ## Developer
-Yash — Backend Development, Database Design, Frontend Integration
+**Yash Nimbalkar** — Full Stack Development, Backend APIs, Database Design, Deployment
 
-Third Year CSE Student | Java Spring Boot | MySQL | HTML CSS JS
+Third Year CSE Student | Java Spring Boot | MySQL | HTML CSS JS | Render
+GitHub: github.com/YASH7732
