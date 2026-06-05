@@ -64,6 +64,7 @@ http://localhost:8081
 - [x] Deployed on Render
 - [x] Cloud MySQL database
 - [x] UptimeRobot monitoring — always awake
+-[x] Admin Privilage added not yet live(locally available)
 
 ## Developer
 **Yash Nimbalkar** — Full Stack Development, Backend APIs, Database Design, Deployment
