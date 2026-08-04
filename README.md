@@ -82,49 +82,6 @@ Mac/Linux:
 
 http://localhost:8081
 
-**Default admin login**
-
-- Username: `admin`
-- Password: `admin123`
-
-## Deploy on Vercel
-
-This project uses `Dockerfile.vercel` so Vercel can build and run the Spring Boot app as a container.
-
-**Step 1 — Push code to GitHub**
-
-```bash
-git add .
-git commit -m "Configure project for Vercel deployment"
-git push
-```
-
-**Step 2 — Import project in Vercel**
-
-1. Go to [vercel.com](https://vercel.com)
-2. Click **Add New → Project**
-3. Import your GitHub repository
-4. Vercel will detect `Dockerfile.vercel` automatically
-
-**Step 3 — Add environment variables**
-
-In Vercel → Project → Settings → Environment Variables, add:
-
-| Variable | Description |
-|---|---|
-| `SPRING_DATASOURCE_URL` | MySQL JDBC URL |
-| `SPRING_DATASOURCE_USERNAME` | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | Database password |
-| `APP_ADMIN_USERNAME` | Admin username (default: admin) |
-| `APP_ADMIN_PASSWORD` | Admin password |
-
-**Step 4 — Deploy**
-
-Click **Deploy**. Vercel builds the Docker image and publishes your app.
-
-**Step 5 — Open live URL**
-
-After deployment, open the URL shown in the Vercel dashboard.
 
 ## Current Status
 
@@ -139,7 +96,7 @@ After deployment, open the URL shown in the Vercel dashboard.
 - [x] Total expenses calculation
 - [x] Vercel deployment configuration
 - [x] Cloud MySQL database
-- [x] Admin privileges and admin panel (ready for deploy)
+- [x] Admin privileges and admin panel (Not deploy yet)
 
 ## Developer
 
