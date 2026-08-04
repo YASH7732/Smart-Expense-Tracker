@@ -138,6 +138,8 @@ After deployment, open the URL shown in the Vercel dashboard.
 - [x] Chart.js analytics dashboard
 - [x] Total expenses calculation
 - [x] Vercel deployment configuration
+- [x] Cloud MySQL database
+- [x] Admin privileges and admin panel (ready for deploy)
 
 ## Developer
 
