@@ -21,26 +21,30 @@ public class AdminBootstrap implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        userRepository.findAll().forEach(user -> {
-            if (user.getRole() == null || user.getRole().isBlank()) {
-                user.setRole("USER");
-                userRepository.save(user);
-            }
-        });
-
-        userRepository.findByUsername(adminUsername).ifPresentOrElse(
-                user -> {
-                    user.setRole("ADMIN");
-                    user.setPassword(adminPassword);
+        try {
+            userRepository.findAll().forEach(user -> {
+                if (user.getRole() == null || user.getRole().isBlank()) {
+                    user.setRole("USER");
                     userRepository.save(user);
-                },
-                () -> {
-                    User admin = new User();
-                    admin.setUsername(adminUsername);
-                    admin.setPassword(adminPassword);
-                    admin.setRole("ADMIN");
-                    userRepository.save(admin);
                 }
-        );
+            });
+
+            userRepository.findByUsername(adminUsername).ifPresentOrElse(
+                    user -> {
+                        user.setRole("ADMIN");
+                        user.setPassword(adminPassword);
+                        userRepository.save(user);
+                    },
+                    () -> {
+                        User admin = new User();
+                        admin.setUsername(adminUsername);
+                        admin.setPassword(adminPassword);
+                        admin.setRole("ADMIN");
+                        userRepository.save(admin);
+                    }
+            );
+        } catch (Exception ex) {
+            System.err.println("Admin bootstrap skipped: " + ex.getMessage());
+        }
     }
 }

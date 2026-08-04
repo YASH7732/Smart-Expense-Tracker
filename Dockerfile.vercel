@@ -1,15 +1,16 @@
-FROM eclipse-temurin:17-jdk-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 COPY src ./src
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests -B
 
-ENV PORT=8080
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -Djava.security.egd=file:/dev/./urandom"
+
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "java -jar target/demo-0.0.1-SNAPSHOT.jar --server.port=${PORT}"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar target/demo-0.0.1-SNAPSHOT.jar --server.port=${PORT:-8080} --server.address=0.0.0.0"]

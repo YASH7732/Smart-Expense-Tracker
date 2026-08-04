@@ -108,15 +108,17 @@ git push
 
 **Step 3 — Add environment variables**
 
-In Vercel → Project → Settings → Environment Variables, add:
+In Vercel → Project → Settings → Environment Variables, add these for **Production** (and Preview if needed):
 
-| Variable | Description |
+| Variable | Example value |
 |---|---|
-| `SPRING_DATASOURCE_URL` | MySQL JDBC URL |
-| `SPRING_DATASOURCE_USERNAME` | Database username |
-| `SPRING_DATASOURCE_PASSWORD` | Database password |
-| `APP_ADMIN_USERNAME` | Admin username (default: admin) |
-| `APP_ADMIN_PASSWORD` | Admin password |
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://your-host:3306/expensedb?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC` |
+| `SPRING_DATASOURCE_USERNAME` | your MySQL username |
+| `SPRING_DATASOURCE_PASSWORD` | your MySQL password |
+| `APP_ADMIN_USERNAME` | admin |
+| `APP_ADMIN_PASSWORD` | your secure admin password |
+
+> **Important:** Do not use `localhost` for the database URL on Vercel. Use a cloud MySQL host (PlanetScale, Railway, Aiven, etc.) and allow connections from external IPs. Missing or wrong database env vars are the most common cause of `FUNCTION_INVOCATION_FAILED`.
 
 **Step 4 — Deploy**
 
