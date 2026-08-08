@@ -27,7 +27,7 @@ Admin users can also view all registered users and manage expenses across the pl
 | Frontend | HTML, CSS, JavaScript |
 | Charts | Chart.js |
 | Authentication | Session-based login |
-| Deployment | Vercel (Docker container) |
+| Deployment | Render |
 | Version Control | Git and GitHub |
 
 ## API Endpoints
@@ -87,46 +87,38 @@ http://localhost:8081
 - Username: `admin`
 - Password: `admin123`
 
-## Deploy on Vercel
+## Deploy on Render
 
-This project uses `Dockerfile.vercel` so Vercel can build and run the Spring Boot app as a container.
+**Step 1 — Connect GitHub repo in Render**
 
-**Step 1 — Push code to GitHub**
+1. Go to [render.com](https://render.com)
+2. Click **New → Web Service**
+3. Connect your GitHub account and select this repository
 
-```bash
-git add .
-git commit -m "Configure project for Vercel deployment"
-git push
-```
+**Step 2 — Configure build and start commands**
 
-**Step 2 — Import project in Vercel**
-
-1. Go to [vercel.com](https://vercel.com)
-2. Click **Add New → Project**
-3. Import your GitHub repository
-4. Vercel will detect `Dockerfile.vercel` automatically
+| Setting | Value |
+|---|---|
+| Build Command | `./mvnw clean package -DskipTests` |
+| Start Command | `java -jar target/*.jar` |
 
 **Step 3 — Add environment variables**
 
-In Vercel → Project → Settings → Environment Variables, add these for **Production** (and Preview if needed):
+In Render → Environment, add:
 
 | Variable | Example value |
 |---|---|
 | `SPRING_DATASOURCE_URL` | `jdbc:mysql://your-host:3306/expensedb?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC` |
 | `SPRING_DATASOURCE_USERNAME` | your MySQL username |
 | `SPRING_DATASOURCE_PASSWORD` | your MySQL password |
-| `APP_ADMIN_USERNAME` | admin |
-| `APP_ADMIN_PASSWORD` | your secure admin password |
-
-> **Important:** Do not use `localhost` for the database URL on Vercel. Use a cloud MySQL host (PlanetScale, Railway, Aiven, etc.) and allow connections from external IPs. Missing or wrong database env vars are the most common cause of `FUNCTION_INVOCATION_FAILED`.
 
 **Step 4 — Deploy**
 
-Click **Deploy**. Vercel builds the Docker image and publishes your app.
+Click **Create Web Service**. Render builds and publishes your app.
 
 **Step 5 — Open live URL**
 
-After deployment, open the URL shown in the Vercel dashboard.
+After deployment, open the URL shown in the Render dashboard.
 
 ## Current Status
 
@@ -139,7 +131,7 @@ After deployment, open the URL shown in the Vercel dashboard.
 - [x] Frontend HTML CSS JS
 - [x] Chart.js analytics dashboard
 - [x] Total expenses calculation
-- [x] Vercel deployment configuration
+- [x] Render deployment configuration
 - [x] Cloud MySQL database
 - [x] Admin privileges and admin panel (ready for deploy)
 
@@ -147,6 +139,6 @@ After deployment, open the URL shown in the Vercel dashboard.
 
 **Yash Nimbalkar** — Full Stack Development, Backend APIs, Database Design, Deployment
 
-Third Year CSE Student | Java Spring Boot | MySQL | HTML CSS JS | Vercel
+Third Year CSE Student | Java Spring Boot | MySQL | HTML CSS JS | Render
 
 GitHub: github.com/YASH7732
