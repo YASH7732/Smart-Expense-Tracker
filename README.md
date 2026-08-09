@@ -82,10 +82,6 @@ Mac/Linux:
 
 http://localhost:8081
 
-**Default admin login**
-
-- Username: `admin`
-- Password: `admin123`
 
 ## Deploy on Render
 
