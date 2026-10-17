@@ -66,8 +66,8 @@ A production-ready full-stack application to track daily expenses, manage budget
 | `SPRING_DATASOURCE_PASSWORD` | **Yes** | Database password | *(secret)* |
 | `HIKARI_MAX_POOL_SIZE` | No (default: 1) | Connection pool cap for free database tiers | `1` |
 | `APP_ADMIN_USERNAME` | No (default: admin) | Seed admin username | `admin` |
-| `APP_ADMIN_PASSWORD` | No (default: admin123) | Seed admin password | *(secret)* |
-| `PORT` | Set by host | HTTP server port | `8081` |
+| `APP_ADMIN_PASSWORD` | **Yes** | Seed admin password — set a strong secret | *(secret)* |
+| `PORT` | Set by host | HTTP server port | `8080` |
 
 ---
 
@@ -106,9 +106,7 @@ Open your browser at:
 http://localhost:8081
 ```
 
-Default Admin Credentials:
-- Username: `admin`
-- Password: `admin123`
+> **Admin Credentials**: Set the admin username and password via the `APP_ADMIN_USERNAME` and `APP_ADMIN_PASSWORD` environment variables before starting the app. Default admin username is `admin` — always override the password in production.
 
 ---
 
@@ -126,7 +124,7 @@ Run the full integration test suite (runs against in-memory H2 database, zero ex
 Build and run using the optimized multi-stage Dockerfile:
 ```bash
 docker build -t smart-expense-tracker .
-docker run -p 8081:8081 \
+docker run -p 8080:8080 \
   -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/expensedb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC" \
   -e SPRING_DATASOURCE_USERNAME="root" \
   -e SPRING_DATASOURCE_PASSWORD="password" \

@@ -22,8 +22,8 @@ USER appuser:appgroup
 # Copy compiled jar from builder
 COPY --from=builder /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 
-ENV PORT=8081
-EXPOSE 8081
+ENV PORT=8080
+EXPOSE 8080
 
 # Production container JVM flags
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
