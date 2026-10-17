@@ -5,13 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Expense Tracker</title>
-    <link rel="stylesheet" href="Style.css" />
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    
 </head>
 
 <body>
+    <div id="serverNotice" style="display:none; background-color:#2196F3; color:white; text-align:center; padding:10px; font-weight:bold; position:sticky; top:0; z-index:9999;"></div>
 
     <!-- AUTH PAGE -->
     <div id="authPage">
@@ -228,188 +227,144 @@
     </div>
 
     <script>
-
         let editingId = null;
         let currentRole = 'USER';
         let userMap = {};
+        let expenseStore = {};
+
+        function showNotice(msg, isError = false) {
+            const el = document.getElementById('serverNotice');
+            if (!el) return;
+            el.innerText = msg;
+            el.style.backgroundColor = isError ? '#f44336' : '#2196F3';
+            el.style.display = 'block';
+        }
+
+        function hideNotice() {
+            const el = document.getElementById('serverNotice');
+            if (el) el.style.display = 'none';
+        }
 
         // CHECK SESSION
         window.onload = function () {
-
+            showNotice('Connecting to cloud server... (if sleeping, cold start takes ~30-45s)');
             fetch('/me', {
                 credentials: 'include'
             })
-
-            .then(response => response.json())
-
-            .then(data => {
-
-                if (data.loggedIn) {
-
-                    showApp(data.username, data.role);
-
+            .then(response => {
+                hideNotice();
+                if (!response.ok) {
+                    return { loggedIn: false };
                 }
-
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.loggedIn) {
+                    showApp(data.username, data.role);
+                }
+            })
+            .catch(err => {
+                showNotice('Server is currently starting up or unreachable. Please wait or refresh in 30 seconds.', true);
             });
-
         };
 
         // SWITCH TABS
         function showTab(tab) {
-
-            document.getElementById('loginForm').style.display =
-                tab === 'login' ? 'block' : 'none';
-
-            document.getElementById('registerForm').style.display =
-                tab === 'register' ? 'block' : 'none';
-
+            document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
             document.getElementById('errorMsg').innerText = '';
-
         }
 
         // REGISTER
         function register() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
 
-            const username =
-                document.getElementById('regUsername').value;
+            if (!username || !password) {
+                document.getElementById('errorMsg').style.color = 'red';
+                document.getElementById('errorMsg').innerText = 'Please enter both username and password.';
+                return;
+            }
 
-            const password =
-                document.getElementById('regPassword').value;
-
+            showNotice('Registering account...');
             fetch('/register', {
-
                 method: 'POST',
-
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-
-                body: JSON.stringify({
-                    username,
-                    password
-                })
-
+                body: JSON.stringify({ username, password })
             })
-
             .then(response => response.text())
-
             .then(result => {
-
+                hideNotice();
+                const errorEl = document.getElementById('errorMsg');
                 if (result === 'REGISTERED') {
-
-                    document.getElementById('errorMsg').style.color =
-                        'green';
-
-                    document.getElementById('errorMsg').innerText =
-                        'Registration successful. Please login.';
-
+                    errorEl.style.color = 'green';
+                    errorEl.innerText = 'Registration successful. Please login.';
                     showTab('login');
-
+                } else if (result === 'USERNAME_RESERVED') {
+                    errorEl.style.color = 'red';
+                    errorEl.innerText = 'This username is reserved.';
+                } else if (result === 'USERNAME_TAKEN') {
+                    errorEl.style.color = 'red';
+                    errorEl.innerText = 'Username already exists.';
+                } else {
+                    errorEl.style.color = 'red';
+                    errorEl.innerText = 'Registration failed: ' + result;
                 }
-
-                else if (result === 'USERNAME_RESERVED') {
-
-                    document.getElementById('errorMsg').style.color =
-                        'red';
-
-                    document.getElementById('errorMsg').innerText =
-                        'This username is reserved.';
-
-                }
-
-                else {
-
-                    document.getElementById('errorMsg').style.color =
-                        'red';
-
-                    document.getElementById('errorMsg').innerText =
-                        'Username already exists.';
-
-                }
-
+            })
+            .catch(err => {
+                showNotice('Server connection error. Please try again.', true);
             });
-
         }
 
         // LOGIN
         function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
 
-            const username =
-                document.getElementById('loginUsername').value;
+            if (!username || !password) {
+                document.getElementById('errorMsg').style.color = 'red';
+                document.getElementById('errorMsg').innerText = 'Please enter both username and password.';
+                return;
+            }
 
-            const password =
-                document.getElementById('loginPassword').value;
-
+            showNotice('Logging in...');
             fetch('/login', {
-
                 method: 'POST',
-
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-
-                body: JSON.stringify({
-                    username,
-                    password
-                })
-
+                body: JSON.stringify({ username, password })
             })
-
             .then(response => response.text())
-
             .then(result => {
-
+                hideNotice();
                 if (result === 'OK') {
-
-                    fetch('/me', {
-                        credentials: 'include'
-                    })
-
-                    .then(response => response.json())
-
-                    .then(data => {
-                        showApp(data.username, data.role);
-                    });
-
+                    fetch('/me', { credentials: 'include' })
+                        .then(response => response.json())
+                        .then(data => {
+                            showApp(data.username, data.role);
+                        });
+                } else {
+                    document.getElementById('errorMsg').style.color = 'red';
+                    document.getElementById('errorMsg').innerText = 'Invalid username or password.';
                 }
-
-                else {
-
-                    document.getElementById('errorMsg').innerText =
-                        'Invalid username or password';
-
-                }
-
+            })
+            .catch(err => {
+                showNotice('Server connection error. Please try again.', true);
             });
-
         }
 
         // SHOW APP
         function showApp(username, role) {
-
             currentRole = role || 'USER';
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('appPage').style.display = 'block';
 
-            document.getElementById('authPage').style.display =
-                'none';
-
-            document.getElementById('appPage').style.display =
-                'block';
-
-            const roleLabel =
-                currentRole === 'ADMIN' ? ' (Admin)' : '';
-
-            document.getElementById('welcomeMsg').innerText =
-                'Welcome, ' + username + roleLabel + '!';
+            const roleLabel = currentRole === 'ADMIN' ? ' (Admin)' : '';
+            document.getElementById('welcomeMsg').innerText = 'Welcome, ' + username + roleLabel + '!';
 
             if (currentRole === 'ADMIN') {
-
-                document.getElementById('adminPanel').style.display =
-                    'block';
-
+                document.getElementById('adminPanel').style.display = 'block';
                 document.getElementById('expenseTableHeader').innerHTML = `
                     <th>ID</th>
                     <th>User</th>
@@ -418,16 +373,9 @@
                     <th>Amount</th>
                     <th>Action</th>
                 `;
-
                 loadUsers().then(() => loadExpenses());
-
-            }
-
-            else {
-
-                document.getElementById('adminPanel').style.display =
-                    'none';
-
+            } else {
+                document.getElementById('adminPanel').style.display = 'none';
                 document.getElementById('expenseTableHeader').innerHTML = `
                     <th>ID</th>
                     <th>Title</th>
@@ -435,390 +383,281 @@
                     <th>Amount</th>
                     <th>Action</th>
                 `;
-
                 loadExpenses();
-
             }
-
         }
 
         // LOAD USERS (ADMIN)
         function loadUsers() {
+            return fetch('/users', { credentials: 'include' })
+                .then(response => {
+                    if (!response.ok) return [];
+                    return response.json();
+                })
+                .then(users => {
+                    userMap = {};
+                    users.forEach(user => {
+                        userMap[user.id] = user.username;
+                    });
 
-            return fetch('/users', {
-                credentials: 'include'
-            })
-
-            .then(response => {
-
-                if (!response.ok) {
-                    return [];
-                }
-
-                return response.json();
-
-            })
-
-            .then(users => {
-
-                userMap = {};
-
-                users.forEach(user => {
-                    userMap[user.id] = user.username;
+                    const table = document.getElementById('usersTable');
+                    table.innerHTML = '';
+                    users.forEach(user => {
+                        table.innerHTML += `
+                            <tr>
+                                <td>${user.id}</td>
+                                <td>${escapeHtml(user.username)}</td>
+                                <td>${escapeHtml(user.role)}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('adminStats').innerText = 'Total users: ' + users.length;
+                })
+                .catch(err => {
+                    console.error('Failed to load users:', err);
                 });
-
-                const table =
-                    document.getElementById('usersTable');
-
-                table.innerHTML = '';
-
-                users.forEach(user => {
-
-                    table.innerHTML += `
-                        <tr>
-                            <td>${user.id}</td>
-                            <td>${user.username}</td>
-                            <td>${user.role}</td>
-                        </tr>
-                    `;
-
-                });
-
-                document.getElementById('adminStats').innerText =
-                    'Total users: ' + users.length;
-
-            });
-
         }
 
         // LOGOUT
         function logout() {
-
+            showNotice('Logging out...');
             fetch('/logout', {
-
                 method: 'POST',
                 credentials: 'include'
-
             })
-
-            .then(() => {
-
+            .finally(() => {
                 location.reload();
-
             });
+        }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
         // LOAD EXPENSES
         function loadExpenses() {
+            fetch('/expenses', { credentials: 'include' })
+                .then(response => {
+                    if (!response.ok) return [];
+                    return response.json();
+                })
+                .then(data => {
+                    const table = document.getElementById('expenseTable');
+                    table.innerHTML = '';
+                    expenseStore = {};
 
-            fetch('/expenses', {
-                credentials: 'include'
-            })
+                    showChart(data);
+                    showTotal(data);
 
-            .then(response => response.json())
+                    if (!data || data.length === 0) {
+                        const colSpan = currentRole === 'ADMIN' ? 6 : 5;
+                        table.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; color:#777;">No expenses found.</td></tr>`;
+                        return;
+                    }
 
-            .then(data => {
-
-                const table =
-                    document.getElementById('expenseTable');
-
-                table.innerHTML = '';
-
-                showChart(data);
-
-                showTotal(data);
-
-                data.forEach(expense => {
-
-                    const safeTitle =
-                        expense.title.replace(/'/g, "\\'");
-
-                    const safeCategory =
-                        expense.category.replace(/'/g, "\\'");
-
-                    const userCell =
-                        currentRole === 'ADMIN'
-                            ? `<td>${userMap[expense.userId] || 'User ' + expense.userId}</td>`
+                    data.forEach(expense => {
+                        expenseStore[expense.id] = expense;
+                        const userCell = currentRole === 'ADMIN'
+                            ? `<td>${escapeHtml(userMap[expense.userId] || 'User ' + expense.userId)}</td>`
                             : '';
 
-                    table.innerHTML += `
-
-                        <tr>
-
-                            <td>${expense.id}</td>
-                            ${userCell}
-
-                            <td>${expense.title}</td>
-
-                            <td>${expense.category}</td>
-
-                            <td>Rs ${expense.amount}</td>
-
-                            <td>
-
-                                <button
-                                    class="edit-btn"
-                                    onclick="editExpense(
-                                        ${expense.id},
-                                        '${safeTitle}',
-                                        ${expense.amount},
-                                        '${safeCategory}'
-                                    )">
-
-                                    Edit
-
-                                </button>
-
-                                <button
-                                    class="delete-btn"
-                                    onclick="deleteExpense(${expense.id})">
-
-                                    Delete
-
-                                </button>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
+                        table.innerHTML += `
+                            <tr>
+                                <td>${expense.id}</td>
+                                ${userCell}
+                                <td>${escapeHtml(expense.title || '')}</td>
+                                <td>${escapeHtml(expense.category || '')}</td>
+                                <td>Rs ${expense.amount || 0}</td>
+                                <td>
+                                    <button class="edit-btn" onclick="editExpense(${expense.id})">Edit</button>
+                                    <button class="delete-btn" onclick="deleteExpense(${expense.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                })
+                .catch(err => {
+                    console.error('Failed to load expenses:', err);
                 });
-
-            });
-
         }
 
         // ADD / UPDATE EXPENSE
         function addExpense() {
+            const title = document.getElementById('title').value.trim();
+            const category = document.getElementById('category').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
 
-            const title =
-                document.getElementById('title').value;
-
-            const category =
-                document.getElementById('category').value;
-
-            const amount =
-                document.getElementById('amount').value;
-
-            const expenseData = {
-                title,
-                category,
-                amount
-            };
-
-            // UPDATE
-            if (editingId !== null) {
-
-                fetch(`/expenses/${editingId}`, {
-
-                    method: 'PUT',
-
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-
-                    credentials: 'include',
-
-                    body: JSON.stringify(expenseData)
-
-                })
-
-                .then(() => {
-
-                    cancelEdit();
-
-                    loadExpenses();
-
-                });
-
+            if (!title) {
+                alert('Please enter an expense title.');
+                return;
+            }
+            if (!category) {
+                alert('Please select a category.');
+                return;
+            }
+            if (isNaN(amount) || amount < 0) {
+                alert('Please enter a valid amount.');
+                return;
             }
 
-            // ADD
-            else {
+            const expenseData = { title, category, amount };
 
-                fetch('/expenses', {
-
-                    method: 'POST',
-
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-
+            if (editingId !== null) {
+                fetch(`/expenses/${editingId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-
                     body: JSON.stringify(expenseData)
-
                 })
-
-                .then(() => {
-
+                .then(res => {
+                    if (!res.ok) throw new Error('Update failed');
+                    cancelEdit();
+                    loadExpenses();
+                })
+                .catch(err => alert('Failed to update expense: ' + err.message));
+            } else {
+                fetch('/expenses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(expenseData)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Add failed');
                     document.getElementById('title').value = '';
                     document.getElementById('category').value = '';
                     document.getElementById('amount').value = '';
-
                     loadExpenses();
-
-                });
-
+                })
+                .catch(err => alert('Failed to add expense: ' + err.message));
             }
-
         }
 
         // EDIT
-        function editExpense(id, title, amount, category) {
+        function editExpense(id) {
+            const expense = expenseStore[id];
+            if (!expense) return;
 
             editingId = id;
+            document.getElementById('title').value = expense.title || '';
+            document.getElementById('amount').value = expense.amount || 0;
+            document.getElementById('category').value = expense.category || '';
 
-            document.getElementById('title').value = title;
-            document.getElementById('amount').value = amount;
-            document.getElementById('category').value = category;
+            document.getElementById('formTitle').innerText = 'Edit Expense';
+            document.getElementById('submitBtn').innerText = 'Update Expense';
+            document.getElementById('submitBtn').style.backgroundColor = '#FF9800';
+            document.getElementById('cancelEdit').style.display = 'block';
 
-            document.getElementById('formTitle').innerText =
-                'Edit Expense';
-
-            document.getElementById('submitBtn').innerText =
-                'Update Expense';
-
-            document.getElementById('submitBtn').style.backgroundColor =
-                '#FF9800';
-
-            document.getElementById('cancelEdit').style.display =
-                'block';
-
-            // PERFECT SCROLL
-            document.getElementById('expenseFormContainer')
-                .scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-
+            document.getElementById('expenseFormContainer').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
 
         // CANCEL EDIT
         function cancelEdit() {
-
             editingId = null;
-
             document.getElementById('title').value = '';
             document.getElementById('category').value = '';
             document.getElementById('amount').value = '';
 
-            document.getElementById('formTitle').innerText =
-                'Add Expense';
-
-            document.getElementById('submitBtn').innerText =
-                'Add Expense';
-
-            document.getElementById('submitBtn').style.backgroundColor =
-                '#4CAF50';
-
-            document.getElementById('cancelEdit').style.display =
-                'none';
-
+            document.getElementById('formTitle').innerText = 'Add Expense';
+            document.getElementById('submitBtn').innerText = 'Add Expense';
+            document.getElementById('submitBtn').style.backgroundColor = '#4CAF50';
+            document.getElementById('cancelEdit').style.display = 'none';
         }
 
         // DELETE
         function deleteExpense(id) {
-
+            if (!confirm('Are you sure you want to delete this expense?')) return;
             fetch(`/expenses/${id}`, {
-
                 method: 'DELETE',
                 credentials: 'include'
-
             })
-
-            .then(() => {
-
+            .then(res => {
+                if (!res.ok) throw new Error('Delete failed');
                 loadExpenses();
-
-            });
-
+            })
+            .catch(err => alert('Failed to delete expense: ' + err.message));
         }
 
         // CHART
         function showChart(data) {
+            const chartCanvas = document.getElementById('categoryChart');
+            if (!chartCanvas) return;
+
+            if (window.myChart) {
+                window.myChart.destroy();
+                window.myChart = null;
+            }
+
+            if (!data || data.length === 0) {
+                chartCanvas.style.display = 'none';
+                let noDataMsg = document.getElementById('noChartDataMsg');
+                if (!noDataMsg) {
+                    noDataMsg = document.createElement('p');
+                    noDataMsg.id = 'noChartDataMsg';
+                    noDataMsg.style.textAlign = 'center';
+                    noDataMsg.style.color = '#777';
+                    noDataMsg.innerText = 'No expense data available for chart.';
+                    chartCanvas.parentNode.appendChild(noDataMsg);
+                } else {
+                    noDataMsg.style.display = 'block';
+                }
+                return;
+            }
+
+            chartCanvas.style.display = 'block';
+            const noDataMsg = document.getElementById('noChartDataMsg');
+            if (noDataMsg) noDataMsg.style.display = 'none';
 
             const categories = {};
-
             data.forEach(expense => {
-
-                if (categories[expense.category]) {
-
-                    categories[expense.category] +=
-                        expense.amount;
-
-                }
-
-                else {
-
-                    categories[expense.category] =
-                        expense.amount;
-
-                }
-
+                const cat = expense.category || 'Other';
+                categories[cat] = (categories[cat] || 0) + Number(expense.amount || 0);
             });
 
             const labels = Object.keys(categories);
-
             const values = Object.values(categories);
-
-            const ctx =
-                document.getElementById('categoryChart')
-                .getContext('2d');
-
-            if (window.myChart) {
-
-                window.myChart.destroy();
-
-            }
+            const ctx = chartCanvas.getContext('2d');
 
             window.myChart = new Chart(ctx, {
-
                 type: 'pie',
-
                 data: {
-
                     labels: labels,
-
                     datasets: [{
-
                         data: values,
-
                         backgroundColor: [
                             '#4CAF50',
                             '#2196F3',
                             '#FF9800',
                             '#E91E63',
                             '#9C27B0',
-                            '#00BCD4'
+                            '#00BCD4',
+                            '#795548',
+                            '#607D8B'
                         ]
-
                     }]
-
                 }
-
             });
-
         }
 
         // TOTAL
         function showTotal(data) {
-
             let total = 0;
-
-            data.forEach(expense => {
-
-                total += Number(expense.amount);
-
-            });
-
-            document.getElementById('totalAmount').innerText =
-                'Rs ' + total;
-
+            if (data && Array.isArray(data)) {
+                data.forEach(expense => {
+                    total += Number(expense.amount || 0);
+                });
+            }
+            document.getElementById('totalAmount').innerText = 'Rs ' + total;
         }
-
     </script>
 
 </body>
