@@ -1,144 +1,150 @@
-# Smart Expense Tracker 💰
+# Smart Expense Tracker & Admin Dashboard 💰
 
-A full stack web application to track daily expenses, manage budgets, and visualize spending patterns.
+A production-ready full-stack application to track daily expenses, manage budgets, visualize spending patterns, and provide administrative user management.
 
-## What This Project Does
+🌐 **Live URL**: https://smart-expense-tracker-czrt.onrender.com
 
-- User registration and login system
-- Admin panel to view all users and all expenses
-- Add, edit, and delete daily expenses
-- Categorize expenses — food, travel, shopping, bills, etc.
-- Real-time expense table with instant updates
-- Visual pie chart showing spending by category
-- Total expenses calculation
+---
 
-## How It Works
+## Features
 
-User registers or logs in → adds daily expenses with title, category, and amount → app stores data in a cloud MySQL database → dashboard shows a pie chart of spending by category → total expenses update automatically.
+### User Features
+- **Registration & Authentication**: Secure account creation and session-based login with BCrypt password hashing.
+- **Expense Tracking**: Add, edit, view, and delete daily expenses.
+- **Expense Categorization**: Organize spending by Food, Travel, Education, Entertainment, Bills, and Other.
+- **Visual Analytics**: Interactive category breakdown chart powered by Chart.js.
+- **Real-Time Totaling**: Instant automatic recalculation of total expenses.
 
-Admin users can also view all registered users and manage expenses across the platform.
+### Admin Dashboard ("Project 2")
+- **Embedded Admin Console**: Accessible exclusively to users with the `ADMIN` role.
+- **User Management**: View all registered users across the platform with their unique IDs and roles.
+- **Global Expense Oversight**: View and manage all expenses submitted across all users.
+- **Access Control Guard**: Strict endpoint security ensuring regular users receive HTTP 403 Forbidden on administrative routes.
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Java Spring Boot |
-| Database | MySQL |
-| Frontend | HTML, CSS, JavaScript |
-| Charts | Chart.js |
-| Authentication | Session-based login |
-| Deployment | Render |
-| Version Control | Git and GitHub |
+| **Backend** | Java 17 / 24, Spring Boot 3.5, Spring Data JPA, Spring Boot Actuator |
+| **Security** | BCrypt Password Hashing (`PasswordEncoder`), Session-based authentication |
+| **Database** | MySQL (Local `expensedb` / Cloud MySQL, TiDB Serverless, or Aiven) |
+| **Connection Pool** | Tuned HikariCP with keepalive and auto-reconnect |
+| **Frontend** | Responsive HTML5, CSS3 (`style.css`), Vanilla JavaScript (ES6+) |
+| **Visualizations** | Chart.js |
+| **Testing** | JUnit 5, MockMvc, H2 in-memory test database |
+| **Containerization** | Multi-stage Dockerfile (Eclipse Temurin JRE) |
+
+---
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | /register | Register new user |
-| POST | /login | User login |
-| POST | /logout | User logout |
-| GET | /me | Current logged-in user |
-| GET | /users | List all users (admin only) |
-| GET | /admin | Admin access check |
-| GET | /expenses | Get expenses |
-| POST | /expenses | Add new expense |
-| PUT | /expenses/{id} | Update expense |
-| DELETE | /expenses/{id} | Delete expense |
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/actuator/health` | Public | Real-time service and database health check |
+| `GET` | `/health` | Public | Backward-compatible health probe returning 200/503 |
+| `POST` | `/register` | Public | Register a new user (`role = USER`) |
+| `POST` | `/login` | Public | Authenticate user and establish session |
+| `POST` | `/logout` | Authenticated | Invalidate session |
+| `GET` | `/me` | Public / Auth | Check current user session status and role |
+| `GET` | `/admin` | Admin Only | Verify admin authorization |
+| `GET` | `/users` | Admin Only | List all registered users |
+| `GET` | `/expenses` | Authenticated | List user expenses (or all expenses for admin) |
+| `POST` | `/expenses` | Authenticated | Add a new expense (validated) |
+| `PUT` | `/expenses/{id}`| Owner / Admin | Update an existing expense |
+| `DELETE` | `/expenses/{id}`| Owner / Admin | Delete an expense |
 
-## How To Run Locally
+---
 
-**Step 1 — Clone the repository**
+## Environment Variables
 
+| Variable | Required in Prod | Description | Example Format |
+|---|---|---|---|
+| `SPRING_DATASOURCE_URL` | **Yes** | JDBC connection string with parameters | `jdbc:mysql://<host>:3306/<database>?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC` |
+| `SPRING_DATASOURCE_USERNAME` | **Yes** | Database user | `app_user` |
+| `SPRING_DATASOURCE_PASSWORD` | **Yes** | Database password | *(secret)* |
+| `HIKARI_MAX_POOL_SIZE` | No (default: 1) | Connection pool cap for free database tiers | `1` |
+| `APP_ADMIN_USERNAME` | No (default: admin) | Seed admin username | `admin` |
+| `APP_ADMIN_PASSWORD` | No (default: admin123) | Seed admin password | *(secret)* |
+| `PORT` | Set by host | HTTP server port | `8081` |
+
+---
+
+## How to Run Locally
+
+### Prerequisites
+- Java JDK 17 or higher
+- MySQL running locally on port 3306 with database `expensedb` (or run automated tests with in-memory H2)
+
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/YASH7732/Smart-Expense-Tracker.git
 cd Smart-Expense-Tracker
 ```
 
-**Step 2 — Set database config**
-
-Update `src/main/resources/application.properties` or set environment variables:
-
-```properties
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/expensedb
-SPRING_DATASOURCE_USERNAME=root
-SPRING_DATASOURCE_PASSWORD=your-password
+### Step 2: Set Environment Variables (Optional)
+If your local MySQL root user has a password:
+```powershell
+$env:SPRING_DATASOURCE_PASSWORD="your-mysql-password"
 ```
 
-**Step 3 — Run the application**
-
-Windows:
-
+### Step 3: Run the Application
+**Windows**:
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Mac/Linux:
-
+**Mac / Linux**:
 ```bash
 ./mvnw spring-boot:run
 ```
 
-**Step 4 — Open browser**
-
+### Step 4: Access the Application
+Open your browser at:
+```
 http://localhost:8081
+```
 
-**Default admin login**
-
+Default Admin Credentials:
 - Username: `admin`
 - Password: `admin123`
 
-## Deploy on Render
+---
 
-**Step 1 — Connect GitHub repo in Render**
+## Running Automated Tests
 
-1. Go to [render.com](https://render.com)
-2. Click **New → Web Service**
-3. Connect your GitHub account and select this repository
+Run the full integration test suite (runs against in-memory H2 database, zero external dependencies required):
+```powershell
+.\mvnw.cmd test
+```
 
-**Step 2 — Configure build and start commands**
+---
 
-| Setting | Value |
-|---|---|
-| Build Command | `./mvnw clean package -DskipTests` |
-| Start Command | `java -jar target/*.jar` |
+## Docker Deployment
 
-**Step 3 — Add environment variables**
+Build and run using the optimized multi-stage Dockerfile:
+```bash
+docker build -t smart-expense-tracker .
+docker run -p 8081:8081 \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://host.docker.internal:3306/expensedb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC" \
+  -e SPRING_DATASOURCE_USERNAME="root" \
+  -e SPRING_DATASOURCE_PASSWORD="password" \
+  smart-expense-tracker
+```
 
-In Render → Environment, add:
+---
 
-| Variable | Example value |
-|---|---|
-| `SPRING_DATASOURCE_URL` | `jdbc:mysql://your-host:3306/expensedb?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC` |
-| `SPRING_DATASOURCE_USERNAME` | your MySQL username |
-| `SPRING_DATASOURCE_PASSWORD` | your MySQL password |
+## UI Screenshots
 
-**Step 4 — Deploy**
+*Screenshots Placeholder*
+- `[Screenshot: User Authentication & Registration]`
+- `[Screenshot: Expense Management Table & Category Chart]`
+- `[Screenshot: Admin Dashboard with User Management]`
 
-Click **Create Web Service**. Render builds and publishes your app.
+---
 
-**Step 5 — Open live URL**
+## Author & Maintainer
 
-After deployment, open the URL shown in the Render dashboard.
-
-## Current Status
-
-- [x] Spring Boot server setup
-- [x] MySQL database connected
-- [x] REST APIs — GET, POST, PUT, DELETE
-- [x] User registration and login
-- [x] Admin privileges and admin panel
-- [x] Expense CRUD operations
-- [x] Frontend HTML CSS JS
-- [x] Chart.js analytics dashboard
-- [x] Total expenses calculation
-- [x] Render deployment configuration
-- [x] Cloud MySQL database
-- [x] Admin privileges and admin panel (ready for deploy)
-
-## Developer
-
-**Yash Nimbalkar** — Full Stack Development, Backend APIs, Database Design, Deployment
-
-Third Year CSE Student | Java Spring Boot | MySQL | HTML CSS JS | Render
-
-GitHub: github.com/YASH7732
+**Yash Nimbalkar**
+- GitHub: [@YASH7732](https://github.com/YASH7732)
