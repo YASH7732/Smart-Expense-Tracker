@@ -18,12 +18,14 @@ import jakarta.servlet.http.HttpSession;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Value("${app.admin.username:admin}")
     private String adminUsername;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/register")
@@ -43,6 +45,7 @@ public class AuthController {
         }
 
         user.setUsername(user.getUsername().trim());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("USER");
         userRepository.save(user);
         return "REGISTERED";
@@ -50,10 +53,29 @@ public class AuthController {
 
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpSession session) {
-        Optional<User> found = userRepository.findByUsername(user.getUsername());
+        if (user.getUsername() == null || user.getPassword() == null) {
+            return "INVALID";
+        }
 
-        if (found.isPresent() && found.get().getPassword().equals(user.getPassword())) {
-            User dbUser = found.get();
+        Optional<User> found = userRepository.findByUsername(user.getUsername());
+        if (found.isEmpty()) {
+            return "INVALID";
+        }
+
+        User dbUser = found.get();
+        boolean passwordMatches = false;
+        String storedPassword = dbUser.getPassword();
+
+        if (storedPassword != null && (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$"))) {
+            passwordMatches = passwordEncoder.matches(user.getPassword(), storedPassword);
+        } else if (storedPassword != null && storedPassword.equals(user.getPassword())) {
+            // Backward-compatible migration for existing plaintext passwords
+            passwordMatches = true;
+            dbUser.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(dbUser);
+        }
+
+        if (passwordMatches) {
             String role = dbUser.getRole();
             if (role == null || role.isBlank()) {
                 role = "USER";
